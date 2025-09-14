@@ -1,68 +1,19 @@
 import { useEffect, useState } from 'react'
 
 export default function Home () {
-  const API_URL = 'http://45.138.159.183:6061/api/Product'
-  const [product, setProducts] = useState([])
+  const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(false)
 
   const getProducts = async () => {
     setLoading(true)
     try {
-      const res = await fetch(API_URL)
+      const res = await fetch('/api/products') 
       const data = await res.json()
       setProducts(data)
     } catch (err) {
-      console.log('Xato (GET) :', err)
+      console.error('Xato (GET):', err)
     }
     setLoading(false)
-  }
-
-  const addProduct = async () => {
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'New Product',
-          price: 1000,
-          category: 'Mevalar'
-        })
-      })
-      const newProduct = await res.json()
-      alert("Yangi mahsulot qo'shildi : " + newProduct.name)
-      getProducts()
-    } catch (err) {
-      console.error('Xato (POST) :', err)
-    }
-  }
-
-  const updateProduct = async id => {
-    try {
-      const res = await fetch(`${API_URL}/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'New Product',
-          price: 1000,
-          category: 'Mevalar'
-        })
-      })
-      const updated = await res.json()
-      alert('Mahsulot tahrirlandi : ' + updated.name)
-      getProducts()
-    } catch (err) {
-      console.error('Xato (PUT) :', err)
-    }
-  }
-
-  const deleteProduct = async id => {
-    try {
-      await fetch(`${API_URL}/${id}`, { method: 'DELETE' })
-      alert("Mahsulot o'chirildi")
-      getProducts()
-    } catch (err) {
-      console.error('Xato (DELETE) :', err)
-    }
   }
 
   useEffect(() => {
@@ -71,20 +22,45 @@ export default function Home () {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h1>Products</h1>
+      <h1>Products (API’dan)</h1>
       {loading && <p>Loading...</p>}
-      <ul>
-        {product.map(p => (
-          <li key={p.id}>
-            {p.name} - {p.price} so'm
-            <button onClick={() => updateProduct(p.id)}>Update</button>
-            <button onClick={() => deleteProduct(p.id)}>Delete</button>
-          </li>
-        ))}
-      </ul>
-      <button style={{ marginTop: '20px' }} onClick={addProduct}>
-        Add New Product
-      </button>
+
+      {products.length === 0 ? (
+        <p>Mahsulot topilmadi</p>
+      ) : (
+        <table
+          border='1'
+          cellPadding='8'
+          style={{ borderCollapse: 'collapse', width: '100%' }}
+        >
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Price</th>
+              <th>Category</th>
+              <th>Created At</th>
+              <th>Updated At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.map(p => (
+              <tr key={p.id}>
+                <td>{p.id}</td>
+                <td>{p.name}</td>
+                <td>{p.description}</td>
+                <td>{p.price}</td>
+                <td>{p.category}</td>
+                <td>{new Date(p.createdAt).toLocaleString()}</td>
+                <td>
+                  {p.updatedAt ? new Date(p.updatedAt).toLocaleString() : '-'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   )
 }
